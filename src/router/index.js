@@ -1,16 +1,19 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import labelMain from '../views/labelMain.vue'
+import home from '../views/Home.vue'
+import about from '../views/About.vue'
 
 Vue.use(VueRouter);
 
 const routes = [
   {
     path: '/',
-     redirect: { name: "labelMain" }
-  },//重定向
+    name: 'home',
+    component: home
+  },
   {
-    path: '/',
+    path: '/label',
     name: 'labelMain',
     component: labelMain
   },
@@ -25,8 +28,8 @@ const routes = [
   {
     //为匹配路由的处理跳转
     path: '*',
-    name: 'labelMain',
-    component: labelMain
+    name: 'home',
+    component: home
   }
 ];
 

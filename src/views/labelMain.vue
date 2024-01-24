@@ -1,12 +1,15 @@
 <template>
     <div>
         <div style="text-align: center">
-            <el-button class="el-button--primary" @click="exportImg">导出</el-button>
+            <el-button class="el-button--primary" @click="exportImg">自动识别</el-button>
+            <el-button class="el-button--primary" @click="exportImg">复制</el-button>
+            <el-button class="el-button--primary" @click="exportImg">清空</el-button>
+            <el-button class="el-button--primary" @click="exportImg">保存</el-button>
         </div>
         <br>
         <el-row :gutter="20" style="height: calc(100vh - 120px);">
             <el-col :span='3'>
-                <div style="height: 100%;overflow: auto;">
+                <div style="overflow: auto;">
                     <div @click="getImgInfo(i)" :class="['img-box', { 'img-box-active': true }]">
                         <img src="../assets/img/kotei_9628.png" style="max-height: 200px;max-width: 100%">
                     </div>
@@ -262,7 +265,7 @@ export default {
                     if (!this.doDrawing) {
                         return
                     }
- 
+
                     var pointer = this.fabricObj.getPointer(e.e);
 
                     this.mouseTo.x = pointer.x;
@@ -346,7 +349,7 @@ export default {
             }
 
         },
-      
+
         exportImg() {
             console.log(this.fabricObj.toJSON())
         },
