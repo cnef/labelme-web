@@ -19,7 +19,7 @@
     "@vue/cli-plugin-router": "^4.1.0",
     "@vue/cli-plugin-vuex": "^4.1.0",
     "@vue/cli-service": "^4.1.0",
-    "fabric": "^3.5.1",
+    "fabric": "^5.3.0",
     "vue-cli-plugin-element-ui": "^1.1.4",
     "vue-template-compiler": "^2.6.10"
   },
