@@ -2,7 +2,6 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import labelMain from '../views/labelMain.vue'
 import home from '../views/Home.vue'
-import about from '../views/About.vue'
 
 Vue.use(VueRouter);
 
@@ -28,7 +27,7 @@ const routes = [
   {
     //为匹配路由的处理跳转
     path: '*',
-    name: 'home',
+    name: '404',
     component: home
   }
 ];

@@ -59,4 +59,21 @@
    display: block;
    color: #fff;
 }
+.demo-drawer__footer {
+    display: flex;
+}
+.demo-drawer__footer button {
+    flex: 1;
+}
+.demo-drawer__content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.demo-drawer__content form {
+    flex: 1;
+}
+.el-drawer__body {
+    padding: 20px;
+}
 </style>
