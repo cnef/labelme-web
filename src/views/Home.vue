@@ -25,10 +25,11 @@
       <el-table-column fixed="right" label="操作" width="300">
         <template slot-scope="scope">
           <el-button @click="$refs.datasetEditor.show(scope.row)" type="text" size="small">编辑</el-button>
+          <el-button type="text" size="small" @click="importCoco(scope.row.id)">导入</el-button>
           <el-button type="text" size="small" @click="$refs.uploader.show(scope.row.id)">上传</el-button>
           <el-button type="text" size="small"
             @click="$router.push({ name: 'labelMain', params: { dataset: scope.row.id, offset: 0, id: 0 } })">标注</el-button>
-          <el-button type="text" size="small" @click="$refs.uploader.show(scope.row.id)">导出</el-button>
+          <el-button type="text" size="small" @click="exportYolo(scope.row.id)">导出</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -56,7 +57,7 @@
 <script>
 import Upload from '@/views/modules/upload.vue'
 import Dataset from '@/views/modules/dataset.vue'
-import { getDatasets } from '@/api/api'
+import { getDatasets, importDataset, exportDataset } from '@/api/api'
 
 export default {
   components: {
@@ -85,6 +86,28 @@ export default {
       }).catch(err => {
         this.$message.error(err.response.data.error)
       })
+    },
+    importCoco(ds) {
+      var path = prompt("输入要导入 Coco 数据集的路径")
+      if (path != "") {
+        importDataset({ path: path, ds: ds }).then((res) => {
+          this.$message.success("成功导入" + res.data.count + "个图片")
+          this.handleOk()
+        }).catch(err => {
+          this.$message.error(err.response.data.error)
+        })
+      }
+    },
+    exportYolo(ds) {
+      var path = prompt("输入要保存 Yolo 数据集的路径")
+      if (path != "") {
+        exportDataset({ path: path, ds: ds }).then((res) => {
+          this.$message.success("成功导出" + res.data.count + "个图片")
+          this.handleOk()
+        }).catch(err => {
+          this.$message.error(err.response.data.error)
+        })
+      }
     }
   },
   mounted() {

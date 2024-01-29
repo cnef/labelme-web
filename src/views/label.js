@@ -14,7 +14,7 @@ fabric.LabeledRect = fabric.util.createClass(fabric.Rect, {
         this.callSuper('_render', ctx);
 
         ctx.font = '14px Helvetica';
-        ctx.fillStyle = '#409EFF';
+        ctx.fillStyle = '#fff';
         ctx.fillText(this.label, -this.width / 2 + 5, -this.height / 2 + 15);
     }
 });

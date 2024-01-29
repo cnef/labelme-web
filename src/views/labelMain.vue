@@ -12,7 +12,7 @@
             <div class="btn">
                 <el-button type="primary" @click="detectImage">自动识别</el-button>
                 <el-button type="primary" @click="copyLabels">复制</el-button>
-                <el-button type="primary" @click="exportImg">保存</el-button>
+                <el-button type="primary" @click="saveImg">保存</el-button>
                 <el-button type="danger" @click="deleteImage" style="margin-left: 30px;">删除</el-button>
                 <el-button type="danger" @click="resetImages">清空</el-button>
             </div>
@@ -33,33 +33,11 @@
                     </div>
                 </div>
             </el-col>
-            <el-col :span='17'>
+            <el-col :span='21'>
                 <div v-loading="loading" id="canvas-box" style="">
                     <canvas id="label-canvas" style="display: block;width: 100%;height:100%"></canvas>
                     <img id="labelImg" @load="imageLoaded" :src="'/api/file/get?id=' + activeImgId"
                         style="max-width: 100%;display: none">
-                </div>
-            </el-col>
-            <el-col :span='4'>
-                <div class="result-box">
-                    <div class="result-tittle" style="">标注结果</div>
-                    <div class="result-content">
-                        <!-- <div v-for="(val, key) in labelResult[activeIndex]" class="result-item">
-                            <b>{{ activeIndex }}-{{ key }}</b>
-                            <div class="result-sub-box" v-for="(item, i) in val">
-                                <div>
-                                    <i>{{ i }}{{ item.shape }}</i>
-                                </div>
-                                <div class="result-sub-box-icon">
-                                    <span title="编辑" @click="handleCommand('edit', item.id, key)" style="cursor: pointer"
-                                        class="el-icon-edit-outline"></span>
-                                    <span style="padding-right: 10px"></span>
-                                    <span title="删除" @click="handleCommand('delete', item.id, key)" style="cursor: pointer"
-                                        class="el-icon-delete"></span>
-                                </div>
-                            </div>
-                        </div> -->
-                    </div>
                 </div>
             </el-col>
         </el-row>
@@ -218,12 +196,14 @@ export default {
             this.closeTip()
         },
         deleteImage() {
-            deleteImage({ id: parseInt(this.activeImgId) }).then(res => {
-                this.$message.success("删除成功")
-                this.getImages()
-            }).catch(err => {
-                this.$message.error(err.response.data.error)
-            })
+            if (confirm("确定删除当前图片?")) {
+                deleteImage({ id: parseInt(this.activeImgId) }).then(res => {
+                    this.$message.success("删除成功")
+                    this.getImages()
+                }).catch(err => {
+                    this.$message.error(err.response.data.error)
+                })
+            }
         },
         fabricCanvas() {
             let canvasBox = document.getElementById('canvas-box');
@@ -271,6 +251,8 @@ export default {
 
             if (!disableLabels) {
                 getImage({ id: this.activeImgId }).then(res => {
+                    if (res.data.labels == "")
+                        return
                     var labels = JSON.parse(res.data.labels)
                     labels.forEach(v => {
                         this.createRect(v.left, v.top, v.width, v.height, v.label)
@@ -295,8 +277,10 @@ export default {
         },
         copyLabels() {
             var from = prompt("源 id")
-            if (from == "") return
+            if (!from) return
             getImage({ id: from }).then(res => {
+                if (res.data.labels == "")
+                    return
                 var labels = JSON.parse(res.data.labels)
                 labels.forEach(v => {
                     this.createRect(v.left, v.top, v.width, v.height, v.label)
@@ -429,8 +413,8 @@ export default {
                 left: left,
                 top: top,
                 label: label,
-                fill: "rgba(255, 255, 255, 0.5)",
-                stroke: '#d97540',
+                fill: "rgb(26, 115, 232, 0.5)",
+                stroke: 'rgb(26, 115, 232)',
                 strokeWidth: 1,
 
                 hasRotatingPoint: false,
@@ -438,6 +422,7 @@ export default {
                 lockRotation: true,
                 selectable: true,
             });
+
             fabricNew.on('mousedown', (event) => {
                 if (event.button === 1) {
                     console.log("left click");
@@ -461,11 +446,12 @@ export default {
                 this.fabricObj.add(fabricNew);
             }
         },
-        exportImg() {
+        saveImg() {
             var obj = this.fabricObj.toJSON()
             var labels = []
             console.log(obj)
             for (var i = 0; i < obj.objects.length; i++) {
+                var v = obj.objects[i]
                 if (v.type == "labeledRect") {
                     if (v.label == "") {
                         this.$message.warning("存在未设置 label 的标签")
@@ -478,8 +464,8 @@ export default {
                             label: v.label,
                             left: v.left,
                             top: v.top,
-                            width: v.width,
-                            height: v.width,
+                            width: v.width * v.scaleX,
+                            height: v.height * v.scaleY,
                         }
                     )
                 }
@@ -535,7 +521,7 @@ export default {
 
 .img-box .img-label {
     position: absolute;
-    width: 20px;
+    width: 40px;
     height: 16px;
     font-size: 14px;
     background: #fff;

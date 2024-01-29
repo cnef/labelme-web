@@ -32,6 +32,22 @@ export function updateDataset(parameter) {
     })
 }
 
+export function importDataset(parameter) {
+    return request({
+        url: "/api/dataset/import",
+        method: 'post',
+        data: parameter
+    })
+}
+
+export function exportDataset(parameter) {
+    return request({
+        url: "/api/dataset/export",
+        method: 'post',
+        data: parameter
+    })
+}
+
 export function getDataset(parameter) {
     return request({
         url: "/api/dataset/get",
@@ -71,6 +87,7 @@ export function deleteImage(parameter) {
         data: parameter
     })
 }
+
 export function detectImage(parameter) {
     return request({
         url: "/api/image/detect",
