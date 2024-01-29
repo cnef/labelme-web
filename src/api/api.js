@@ -4,7 +4,7 @@ import axios from 'axios'
 const request = axios.create({
     // API 请求的默认前缀
     baseURL: process.env.VUE_APP_API_BASE_URL,
-    timeout: 60000, // 请求超时时间
+    timeout: 30000, // 请求超时时间
     withCredentials: true
 })
 
@@ -29,5 +29,52 @@ export function updateDataset(parameter) {
         url: "/api/dataset/update",
         method: 'put',
         data: parameter
+    })
+}
+
+export function getDataset(parameter) {
+    return request({
+        url: "/api/dataset/get",
+        method: 'get',
+        params: parameter
+    })
+}
+
+export function getImages(parameter) {
+    return request({
+        url: "/api/image/list",
+        method: 'get',
+        params: parameter
+    })
+}
+
+export function getImage(parameter) {
+    return request({
+        url: "/api/image/get",
+        method: 'get',
+        params: parameter
+    })
+}
+
+export function updateImage(parameter) {
+    return request({
+        url: "/api/image/update",
+        method: 'put',
+        data: parameter
+    })
+}
+
+export function deleteImage(parameter) {
+    return request({
+        url: "/api/image/delete",
+        method: 'delete',
+        data: parameter
+    })
+}
+export function detectImage(parameter) {
+    return request({
+        url: "/api/image/detect",
+        method: 'get',
+        params: parameter
     })
 }

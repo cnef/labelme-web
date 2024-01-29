@@ -9,7 +9,11 @@
       </el-table-column>
       <el-table-column prop="model_path" label="模型文件">
       </el-table-column>
-      <el-table-column prop="model_args" label="模型参数">
+      <el-table-column prop="input_shape" label="input_shape">
+      </el-table-column>
+      <el-table-column prop="output_shape" label="output_shape">
+      </el-table-column>
+      <el-table-column prop="probability" label="置信度阈值">
       </el-table-column>
       <el-table-column prop="labels" label="标签">
         <template slot-scope="scope">
@@ -18,10 +22,13 @@
       </el-table-column>
       <el-table-column prop="count" label="图片数">
       </el-table-column>
-      <el-table-column fixed="right" label="操作" width="200">
+      <el-table-column fixed="right" label="操作" width="300">
         <template slot-scope="scope">
           <el-button @click="$refs.datasetEditor.show(scope.row)" type="text" size="small">编辑</el-button>
           <el-button type="text" size="small" @click="$refs.uploader.show(scope.row.id)">上传</el-button>
+          <el-button type="text" size="small"
+            @click="$router.push({ name: 'labelMain', params: { dataset: scope.row.id, offset: 0, id: 0 } })">标注</el-button>
+          <el-button type="text" size="small" @click="$refs.uploader.show(scope.row.id)">导出</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -47,8 +54,8 @@
 </style>
 
 <script>
-import Upload from './modules/upload.vue'
-import Dataset from './modules/dataset.vue'
+import Upload from '@/views/modules/upload.vue'
+import Dataset from '@/views/modules/dataset.vue'
 import { getDatasets } from '@/api/api'
 
 export default {

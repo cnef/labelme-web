@@ -4,7 +4,7 @@
       <b>AI 标注工具</b>
       <ul>
         <li><a href="#/">数据集</a></li>
-        <li><a href="#/label">标注</a></li>
+        <!-- <li><a href="#/label">标注</a></li> -->
         <li><a href="#/about">关于</a></li>
       </ul>
     </div>

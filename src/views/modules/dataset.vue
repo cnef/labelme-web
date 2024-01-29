@@ -1,5 +1,5 @@
 <template>
-    <el-drawer title="编辑数据集" :visible.sync="dialog" direction="rtl" custom-class="demo-drawer" ref="drawer">
+    <el-drawer title="编辑数据集" :visible.sync="dialog" direction="rtl" custom-class="demo-drawer">
         <div class="demo-drawer__content">
             <el-form :model="form">
                 <el-form-item label="ID" :label-width="formLabelWidth">
@@ -16,8 +16,16 @@
                         <div slot="tip" class="el-upload__tip">只能上传 onnx 文件</div>
                     </el-upload>
                 </el-form-item>
-                <el-form-item label="模型参数" :label-width="formLabelWidth">
-                    <el-input type="textarea" :rows="2" placeholder="" v-model="form.model_args">
+                <el-form-item label="Input Shape" :label-width="formLabelWidth">
+                    <el-input placeholder="1,3,640,640" v-model="form.input_shape">
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="Output Shape" :label-width="formLabelWidth">
+                    <el-input placeholder="1,31,8400" v-model="form.output_shape">
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="置信度阈值" :label-width="formLabelWidth">
+                    <el-input placeholder="0.1" v-model="form.probability">
                     </el-input>
                 </el-form-item>
                 <el-form-item label="标签定义" :label-width="formLabelWidth">
@@ -63,6 +71,7 @@ export default {
 
             var d = Object.assign({}, this.form)
             d.labels = (d.labels || "").split("\n")
+            d.probability = parseFloat(d.probability)
 
             fn(d).then(res => {
                 console.log(res)

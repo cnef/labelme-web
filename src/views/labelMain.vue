@@ -1,33 +1,43 @@
 <template>
     <div>
-        <div style="text-align: center">
-            <el-button class="el-button--primary" @click="exportImg">自动识别</el-button>
-            <el-button class="el-button--primary" @click="exportImg">复制</el-button>
-            <el-button class="el-button--primary" @click="exportImg">清空</el-button>
-            <el-button class="el-button--primary" @click="exportImg">保存</el-button>
+        <div class="header">
+            <div class="title">
+                <strong style="padding: 0 10px;">数据集：{{ dataset.name }} (图片数：{{ dataset.count }})</strong>
+            </div>
+            <div class="pages">
+                <el-pagination background layout="prev, pager, next, jumper" :current-page.sync="currentPage" :total="total"
+                    :page-size="pageSize" @current-change="handlePageChange">
+                </el-pagination>
+            </div>
+            <div class="btn">
+                <el-button type="primary" @click="detectImage">自动识别</el-button>
+                <el-button type="primary" @click="copyLabels">复制</el-button>
+                <el-button type="primary" @click="exportImg">保存</el-button>
+                <el-button type="danger" @click="deleteImage" style="margin-left: 30px;">删除</el-button>
+                <el-button type="danger" @click="resetImages">清空</el-button>
+            </div>
+            <div class="help">
+                <p>鼠标中间缩放，按住 Alt 可移动图片</p>
+            </div>
         </div>
         <br>
         <el-row :gutter="20" style="height: calc(100vh - 120px);">
             <el-col :span='3'>
                 <div style="overflow: auto;">
-                    <div @click="getImgInfo(i)" :class="['img-box', { 'img-box-active': true }]">
-                        <img src="../assets/img/kotei_9628.png" style="max-height: 200px;max-width: 100%">
-                    </div>
-                    <div @click="getImgInfo(i)" :class="['img-box', { 'img-box-active': true }]">
-                        <img src="../assets/img/kotei_9640.png" style="max-height: 200px;max-width: 100%">
-                    </div>
-                    <div @click="getImgInfo(i)" :class="['img-box', { 'img-box-active': true }]">
-                        <img src="../assets/img/kotei_10015.png" style="max-height: 200px;max-width: 100%">
-                    </div>
-                    <div style="text-align: center">
-                        <a class="more-a" @click="getMore">点击加载更多</a>
+                    <div @click="switchImage(img.id)" v-for="img in images"
+                        :class="['img-box', { 'img-box-active': img.id == activeImgId }]">
+                        <div class="img-label">
+                            {{ img.id }}
+                        </div>
+                        <img :src="'/api/file/get?id=' + img.id" style="height: 100px;max-width: 100%">
                     </div>
                 </div>
             </el-col>
             <el-col :span='17'>
                 <div v-loading="loading" id="canvas-box" style="">
                     <canvas id="label-canvas" style="display: block;width: 100%;height:100%"></canvas>
-                    <img id="img-test" src="../assets/img/kotei_9628.png" style="max-width: 100%;display: none">
+                    <img id="labelImg" @load="imageLoaded" :src="'/api/file/get?id=' + activeImgId"
+                        style="max-width: 100%;display: none">
                 </div>
             </el-col>
             <el-col :span='4'>
@@ -54,7 +64,7 @@
             </el-col>
         </el-row>
         <div ref="toolTip" class="toolTip">
-            <el-select v-model="selectValue" filterable placeholder="请选择" @change="topChange">
+            <el-select v-model="selectValue" filterable placeholder="请选择" @change="labelChange">
                 <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value">
                 </el-option>
             </el-select>
@@ -68,7 +78,7 @@
 
 <script>
 import { Button, Select } from 'element-ui';
-
+import { getDataset, getImages, updateImage, getImage, deleteImage, detectImage } from '@/api/api'
 import './label.js';
 
 export default {
@@ -79,39 +89,20 @@ export default {
     },
     data() {
         return {
-            options: [{
-                value: '选项1',
-                label: 'char-1'
-            }, {
-                value: '选项2',
-                label: 'char-2'
-            }, {
-                value: '选项3',
-                label: 'dot-1'
-            }, {
-                value: '选项4',
-                label: 'dot-2'
-            }, {
-                value: '选项5',
-                label: '北京烤鸭'
-            }],
+            options: [],
             selectValue: "",
             loading: true,
             fabricObj: null,
             mouseFrom: {},
             mouseTo: {},
             doDrawing: false,
-            page: 1,
-            pageSize: 4,
-            imgList: [
-                { index: 0, url: '' },
-                { index: 1, url: '' },
-                { index: 2, url: '' },
-                { index: 4, url: '' },
-            ],
-            labelResult: {
-                // 0:{'renche3.5':['juxing0']}
-            },
+            saved: true,
+            currentPage: 1,
+            pageSize: 6,
+            total: 0,
+            dataset: {},
+            images: [],
+            activeImgId: "",
         }
     },
     watch: {
@@ -122,20 +113,92 @@ export default {
         this.loading = true;
     },
     mounted() {
+        this.offset = this.$route.params.offset
+        this.getDataset()
+        this.getImages()
         this.$nextTick(() => {
             setTimeout(() => {
-                this.loading = false;
                 this.fabricCanvas();
                 this.fabricObjEvent();
+                this.addImageToCanvas()
+
+                // this.fabricObj.loadFromJSON(this.fabricJson[id + ''])
+                this.currentPage = (this.offset / this.pageSize) + 1
+                this.loading = false
             }, 500)
         });
-
     },
     methods: {
-        topChange(v) {
-            console.log(v)
+        getDataset() {
+            getDataset({ id: this.$route.params.dataset })
+                .then(res => {
+                    this.dataset = res.data
+                    var opts = []
+                    res.data.labels.forEach(v => {
+                        if (v != "") {
+                            opts.push({
+                                label: v,
+                                value: v
+                            })
+                        }
+                    })
+                    this.options = opts
+                }).catch(err => {
+                    this.$message.error(err.response.data.error)
+                })
+        },
+        getImages() {
+            getImages({ ds: this.$route.params.dataset, pageSize: this.pageSize, offset: this.offset })
+                .then(res => {
+                    this.images = res.data.rows
+                    this.total = res.data.total
+                    this.activeImgId = this.$route.params.id
+                    if (this.activeImgId == 0 && this.images.length > 0) {
+                        this.activeImgId = this.images[0].id
+                    }
+                }).catch(err => {
+                    this.$message.error(err.response.data.error)
+                })
+        },
+        handlePageChange(val) {
+            if (!this.checkSave()) {
+                this.currentPage = this.currentPage
+                return
+            }
+            this.offset = (val - 1) * this.pageSize
+            this.activeImgId = 0
+            this.currentPage = val
+            this.switchImage(0)
+            this.getImages()
+        },
+        checkSave() {
+            if (!this.saved) {
+                if (!confirm("还未保存，要放弃吗")) {
+                    return false
+                }
+                this.saved = true
+            }
+            return true
+        },
+        switchImage(imageId) {
+            if (!this.checkSave()) {
+                return
+            }
+            if (this.activeImgId == imageId && this.activeImgId > 0) {
+                return
+            }
+            this.activeImgId = imageId
+            this.$router.push({
+                name: 'labelMain',
+                params: {
+                    dataset: this.$route.params.dataset,
+                    offset: this.offset,
+                    id: imageId
+                }
+            });
+        },
+        labelChange(v) {
             var a = this.fabricObj.getActiveObject()
-            console.log(a)
             if (a) {
                 a.set({
                     "label": v,
@@ -143,6 +206,7 @@ export default {
                 })
                 this.fabricObj.requestRenderAll()
                 this.closeTip()
+                this.saved = false
             }
         },
         closeTip() {
@@ -153,9 +217,14 @@ export default {
             this.fabricObj.remove(obj);
             this.closeTip()
         },
-        /**
-        * @desc 初始化fabric，添加图待标注图片到画布中。
-        * */
+        deleteImage() {
+            deleteImage({ id: parseInt(this.activeImgId) }).then(res => {
+                this.$message.success("删除成功")
+                this.getImages()
+            }).catch(err => {
+                this.$message.error(err.response.data.error)
+            })
+        },
         fabricCanvas() {
             let canvasBox = document.getElementById('canvas-box');
             let canvasWidth = canvasBox.clientWidth || canvasBox.offsetWidth;
@@ -167,9 +236,20 @@ export default {
                 fireRightClick: true,  // <-- enable firing of right click events
                 fireMiddleClick: true, // <-- enable firing of middle click events
                 stopContextMenu: true, // <--  prevent context menu from showing
+                hoverCursor: 'pointer',
             });
+        },
+        addImageToCanvas(disableLabels) {
+            if (!this.fabricObj) {
+                return
+            }
 
-            let imgElement = document.getElementById('img-test');
+            this.fabricObj.clear()
+            let canvasBox = document.getElementById('canvas-box');
+            let canvasWidth = canvasBox.clientWidth || canvasBox.offsetWidth;
+            let canvasHeight = canvasBox.clientHeight || canvasBox.offsetHeight;
+
+            let imgElement = document.getElementById('labelImg');
             let imgWidth = imgElement.naturalWidth;
             let imgHeight = imgElement.naturalHeight;
             let scale;
@@ -179,17 +259,27 @@ export default {
             } else {
                 scale = canvasHeight / imgHeight
             }
-            let img = new fabric.Image(imgElement, {
-                scaleX: scale,
-                scaleY: scale,
+            let activeImg = new fabric.Image(imgElement, {
+                // scaleX: scale,
+                // scaleY: scale,
                 zIndex: 0,
                 selectable: false,
             });
 
-            this.fabricObj.add(
-                img,
-            );
+            this.fabricObj.add(activeImg);
+            this.fabricObj.setZoom(scale)
 
+            if (!disableLabels) {
+                getImage({ id: this.activeImgId }).then(res => {
+                    var labels = JSON.parse(res.data.labels)
+                    labels.forEach(v => {
+                        this.createRect(v.left, v.top, v.width, v.height, v.label)
+                    })
+                }).catch(err => {
+                    this.$message.error(err.response.data.error)
+                })
+            }
+            this.fabricObj.requestRenderAll();
         },
         getObjPosition(e) {
             // Get dimensions of object
@@ -203,11 +293,33 @@ export default {
             var top = offset._offset.top + rect.top;
             return { left: left, top: top, right: right, bottom: bottom };
         },
-        /**
-         * @desc事件监听
-         * */
+        copyLabels() {
+            var from = prompt("源 id")
+            if (from == "") return
+            getImage({ id: from }).then(res => {
+                var labels = JSON.parse(res.data.labels)
+                labels.forEach(v => {
+                    this.createRect(v.left, v.top, v.width, v.height, v.label)
+                })
+            }).catch(err => {
+                this.$message.error(err.response.data.error)
+            })
+            this.fabricObj.requestRenderAll();
+        },
+        detectImage() {
+            detectImage({ id: this.activeImgId }).then(res => {
+                console.log(res.data)
+                console.log("zoom", this.fabricObj.getZoom())
+                res.data.forEach(([x1, y1, x2, y2, label, rate]) => {
+                    this.createRect(x1, y1, x2 - x1, y2 - y1, label)
+                });
+            }).catch(err => {
+                this.$message.error(err.response.data.error)
+            })
+            this.fabricObj.requestRenderAll();
+        },
         fabricObjEvent() {
-            // this.fabricObj.isDrawingMode = true;
+            console.log('fabricObjEvent')
             this.fabricObj.on({
                 'mouse:down': (e) => {
                     //鼠标按下
@@ -252,13 +364,13 @@ export default {
                     this.mouseTo.y = pointer.y;
                 },
                 'mouse:up': (e) => {
-
                     if (this.fabricObj.isDragging) {
                         // on mouse up we want to recalculate new interaction
                         // for all objects, so we call setViewportTransform
                         this.fabricObj.setViewportTransform(this.fabricObj.viewportTransform);
                         this.fabricObj.isDragging = false;
                         this.fabricObj.selection = true;
+                        console.log('dragged')
                         return
                     }
 
@@ -295,10 +407,6 @@ export default {
         },
 
         drawing() {
-            if (this.drawingObject) {
-                this.fabricObj.remove(this.drawingObject)
-            }
-
             let width = Math.abs(this.mouseTo.x - this.mouseFrom.x)
             let height = Math.abs(this.mouseTo.y - this.mouseFrom.y)
             if (width < 10 || height < 10) {
@@ -312,26 +420,30 @@ export default {
             if (this.mouseTo.y < this.mouseFrom.y) {
                 y = this.mouseTo.y
             }
+            this.createRect(x, y, width, height, "")
+        },
+        createRect(left, top, width, height, label) {
             let fabricNew = new fabric.LabeledRect({
                 width: width,
                 height: height,
-                left: x,
-                top: y,
-                label: 'test',
+                left: left,
+                top: top,
+                label: label,
                 fill: "rgba(255, 255, 255, 0.5)",
-                stroke: '#357960',
+                stroke: '#d97540',
                 strokeWidth: 1,
 
                 hasRotatingPoint: false,
                 centeredRotation: false,
-                lockRotation: true
+                lockRotation: true,
+                selectable: true,
             });
-
             fabricNew.on('mousedown', (event) => {
                 if (event.button === 1) {
                     console.log("left click");
                     var ps = this.getObjPosition(event)
                     console.log(ps)
+                    this.selectValue = fabricNew.get("label")
                     this.$refs.toolTip.style.visibility = 'visible'
                     this.$refs.toolTip.style.top = ps.top + 'px'
                     this.$refs.toolTip.style.left = ps.right + 'px'
@@ -342,41 +454,61 @@ export default {
                 if (event.button === 3) {
                     console.log("right click");
                 }
+                console.log("draw click");
             })
 
             if (fabricNew) {
                 this.fabricObj.add(fabricNew);
             }
-
         },
-
         exportImg() {
-            console.log(this.fabricObj.toJSON())
+            var obj = this.fabricObj.toJSON()
+            var labels = []
+            console.log(obj)
+            for (var i = 0; i < obj.objects.length; i++) {
+                if (v.type == "labeledRect") {
+                    if (v.label == "") {
+                        this.$message.warning("存在未设置 label 的标签")
+                        labels = []
+                        return
+                    }
+                    labels.push(
+                        {
+                            type: "rect",
+                            label: v.label,
+                            left: v.left,
+                            top: v.top,
+                            width: v.width,
+                            height: v.width,
+                        }
+                    )
+                }
+            }
+
+            updateImage({
+                id: parseInt(this.activeImgId),
+                labels: JSON.stringify(labels),
+                width: obj.objects[0].width,
+                height: obj.objects[0].height
+            }).then(res => {
+                this.$message.success("保存成功")
+                this.saved = true
+            }).catch(err => {
+                this.$message.error(err.response.data.error)
+            })
+            console.log(obj, labels)
         },
 
-        /*
-       * @desc 获取更所图片
-       * */
-        getMore() {
-            for (let i = 0; i < this.pageSize; i++) {
-                this.imgList.push({ index: this.pageSize * this.page + i, url: '' })
-            }
-            this.page++;
+        imageLoaded() {
+            console.log("imageLoaded")
+            this.addImageToCanvas()
         },
-        /*
-        * @desc 获取当前图片信息
-        * */
-        getImgInfo(i) {
-            this.activeIndex = i;
-            // this.fabricJson[i-1] = JSON.stringify(this.fabricObj);
-            this.fabricObj.clear().renderAll();
-            this.fabricCanvas();
-            if (this.fabricJson.hasOwnProperty(i + '') && this.fabricJson[i + ''] !== '') {
-                // console.log(this.fabricJson[i+'']);
-                this.fabricObj.loadFromJSON(this.fabricJson[i + ''])
-                this.fabricObj.renderAll();
+
+        resetImages() {
+            if (confirm("确定清空当前标记?")) {
+                this.addImageToCanvas(true)
             }
-        },
+        }
     },
 }
 </script>
@@ -386,16 +518,11 @@ export default {
     padding-right: 5px
 }
 
-.more-a {
-    color: #0097dd;
-    cursor: pointer;
-    text-decoration: underline;
-}
-
 .img-box {
     border: 1px solid #dddeea;
     margin-bottom: 10px;
     cursor: pointer;
+    text-align: center;
 }
 
 .img-box:hover {
@@ -404,6 +531,15 @@ export default {
 
 .img-box-active {
     border-color: #0097dd;
+}
+
+.img-box .img-label {
+    position: absolute;
+    width: 20px;
+    height: 16px;
+    font-size: 14px;
+    background: #fff;
+    text-align: center;
 }
 
 #canvas-box {
@@ -450,5 +586,17 @@ export default {
     font-size: 13px;
     color: #fff;
     visibility: hidden;
+}
+
+.header {
+    text-align: center;
+}
+
+.header .title,
+.header .btn,
+.header .pages,
+.header .help {
+    display: inline-block;
+    margin: 0 10px;
 }
 </style>

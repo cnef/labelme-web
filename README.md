@@ -1,22 +1,26 @@
 
-# vue-label-me
-图片标注网站，用fabric.js基于 canvas对图片进行标注，包括图形矩形、圆形、多边形、直线、线段、点标记车道线，障碍物，交通信号灯等
+# labelme-web
+
+图片标注网站，用fabric.js基于 canvas对图片进行标注，支持矩形标注和导出 yolo 格式等
+
+- 支持复制已标注图片的结果，快速标注新图
+- 支持通过预训练模型自动标注，再修正结果
 
 # auto-label-web
 
 ## Project setup
 ```
-npm install
+yarn install
 ```
 
 ### Compiles and hot-reloads for development
 ```
-npm run serve
+yarn run serve
 ```
 
 ### Compiles and minifies for production
 ```
-npm run build
+yarn run build
 ```
 
 ### Customize configuration

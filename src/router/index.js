@@ -12,7 +12,7 @@ const routes = [
     component: home
   },
   {
-    path: '/label',
+    path: '/label/:dataset/:offset/:id',
     name: 'labelMain',
     component: labelMain
   },
