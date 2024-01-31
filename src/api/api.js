@@ -95,3 +95,11 @@ export function detectImage(parameter) {
         params: parameter
     })
 }
+
+export function getLabels(parameter) {
+    return request({
+        url: "/api/image/labels",
+        method: 'get',
+        params: parameter
+    })
+}

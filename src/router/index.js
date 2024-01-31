@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import labelMain from '../views/labelMain.vue'
+import labelVerify from '../views/labelVerify.vue'
 import home from '../views/Home.vue'
 
 Vue.use(VueRouter);
@@ -12,9 +13,14 @@ const routes = [
     component: home
   },
   {
-    path: '/label/:dataset/:offset/:id',
+    path: '/label/:dataset/:offset/:id/:only',
     name: 'labelMain',
     component: labelMain
+  },
+  {
+    path: '/verify/:dataset/:label/:offset',
+    name: 'labelVerify',
+    component: labelVerify
   },
   {
     path: '/about',

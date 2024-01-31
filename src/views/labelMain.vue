@@ -127,17 +127,25 @@ export default {
                 })
         },
         getImages() {
-            getImages({ ds: this.$route.params.dataset, pageSize: this.pageSize, offset: this.offset })
-                .then(res => {
-                    this.images = res.data.rows
-                    this.total = res.data.total
-                    this.activeImgId = this.$route.params.id
-                    if (this.activeImgId == 0 && this.images.length > 0) {
-                        this.activeImgId = this.images[0].id
-                    }
-                }).catch(err => {
-                    this.$message.error(err.response.data.error)
-                })
+            var filterImg = ""
+            if (this.$route.params.only) {
+                filterImg = this.$route.params.id
+            }
+            getImages({
+                ds: this.$route.params.dataset,
+                pageSize: this.pageSize,
+                offset: this.offset,
+                img: filterImg
+            }).then(res => {
+                this.images = res.data.rows
+                this.total = res.data.total
+                this.activeImgId = this.$route.params.id
+                if (this.activeImgId == 0 && this.images.length > 0) {
+                    this.activeImgId = this.images[0].id
+                }
+            }).catch(err => {
+                this.$message.error(err.response.data.error)
+            })
         },
         handlePageChange(val) {
             if (!this.checkSave()) {
