@@ -76,11 +76,12 @@ export default {
             doDrawing: false,
             saved: true,
             currentPage: 1,
-            pageSize: 6,
+            pageSize: 8,
             total: 0,
             dataset: {},
             images: [],
             activeImgId: "",
+            preImgId: ""
         }
     },
     watch: {
@@ -144,6 +145,7 @@ export default {
                 return
             }
             this.offset = (val - 1) * this.pageSize
+            this.preImgId = this.activeImgId
             this.activeImgId = 0
             this.currentPage = val
             this.switchImage(0)
@@ -165,6 +167,7 @@ export default {
             if (this.activeImgId == imageId && this.activeImgId > 0) {
                 return
             }
+            this.preImgId = this.activeImgId
             this.activeImgId = imageId
             this.$router.push({
                 name: 'labelMain',
@@ -276,7 +279,7 @@ export default {
             return { left: left, top: top, right: right, bottom: bottom };
         },
         copyLabels() {
-            var from = prompt("源 id")
+            var from = prompt("源 id", this.preImgId)
             if (!from) return
             getImage({ id: from }).then(res => {
                 if (res.data.labels == "")
@@ -517,6 +520,7 @@ export default {
 
 .img-box-active {
     border-color: #0097dd;
+    background: #0097dd;
 }
 
 .img-box .img-label {
