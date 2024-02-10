@@ -128,7 +128,7 @@ export default {
         },
         getImages() {
             var filterImg = ""
-            if (this.$route.params.only) {
+            if (this.$route.params.only == "1") {
                 filterImg = this.$route.params.id
             }
             getImages({
@@ -182,7 +182,8 @@ export default {
                 params: {
                     dataset: this.$route.params.dataset,
                     offset: this.offset,
-                    id: imageId
+                    id: imageId,
+                    only: this.$route.params.only
                 }
             });
         },
@@ -199,7 +200,8 @@ export default {
             }
         },
         closeTip() {
-            this.$refs.toolTip.style.visibility = 'hidden'
+            // this.$refs.toolTip.style.visibility = 'hidden'
+            this.$refs.toolTip.style.display = 'none'
         },
         deleteObj() {
             var obj = this.fabricObj.getActiveObject()
@@ -239,6 +241,8 @@ export default {
             let canvasBox = document.getElementById('canvas-box');
             let canvasWidth = canvasBox.clientWidth || canvasBox.offsetWidth;
             let canvasHeight = canvasBox.clientHeight || canvasBox.offsetHeight;
+            // document.getElementById('label-canvas').width = canvasWidth;
+            // document.getElementById('label-canvas').height = canvasHeight;
 
             let imgElement = document.getElementById('labelImg');
             let imgWidth = imgElement.naturalWidth;
@@ -436,21 +440,22 @@ export default {
 
             fabricNew.on('mousedown', (event) => {
                 if (event.button === 1) {
-                    console.log("left click");
+                    // console.log("left click");
                     var ps = this.getObjPosition(event)
                     console.log(ps)
                     this.selectValue = fabricNew.get("label")
-                    this.$refs.toolTip.style.visibility = 'visible'
+                    // this.$refs.toolTip.style.visibility = 'visible'
+                    this.$refs.toolTip.style.display = 'block'
                     this.$refs.toolTip.style.top = ps.top + 'px'
                     this.$refs.toolTip.style.left = ps.right + 'px'
                 }
-                if (event.button === 2) {
-                    console.log("middle click");
-                }
-                if (event.button === 3) {
-                    console.log("right click");
-                }
-                console.log("draw click");
+                // if (event.button === 2) {
+                //     console.log("middle click");
+                // }
+                // if (event.button === 3) {
+                //     console.log("right click");
+                // }
+                // console.log("draw click");
             })
 
             if (fabricNew) {
@@ -549,30 +554,6 @@ export default {
     overflow: hidden;
 }
 
-.result-tittle {
-    border-left: 4px solid #409EFF;
-    padding-left: 10px;
-    border-bottom: 1px solid #dddeea;
-}
-
-.result-content {
-    padding: 10px;
-}
-
-.result-item {
-    margin-bottom: 10px;
-}
-
-.result-sub-box {
-    padding-left: 10px;
-    display: flex;
-    justify-content: space-between
-}
-
-.result-sub-box:hover {
-    color: #409EFF;
-}
-
 .toolTip {
     position: absolute;
     z-index: 1;
@@ -583,7 +564,8 @@ export default {
     padding: 8px;
     font-size: 13px;
     color: #fff;
-    visibility: hidden;
+    display: none;
+    /* visibility: hidden; */
 }
 
 .header {

@@ -50,7 +50,7 @@ export default {
             selectValue: "",
             loading: true,
             currentPage: 1,
-            pageSize: 300,
+            pageSize: 500,
             total: 0,
             dataset: {},
             labels: [],

@@ -25,18 +25,19 @@
       <el-table-column fixed="right" label="操作" width="360">
         <template slot-scope="scope">
           <el-button @click="$refs.datasetEditor.show(scope.row)" type="text" size="small">编辑</el-button>
-          <el-button type="text" size="small" @click="importCoco(scope.row.id)">导入</el-button>
           <el-button type="text" size="small" @click="$refs.uploader.show(scope.row.id)">上传</el-button>
           <el-button type="text" size="small"
-            @click="$router.push({ name: 'labelMain', params: { dataset: scope.row.id, offset: 0, id: 0 } })">标注</el-button>
+            @click="$router.push({ name: 'labelMain', params: { dataset: scope.row.id, offset: 0, id: 0, only: '0' } })">标注</el-button>
           <el-button type="text" size="small"
             @click="$router.push({ name: 'labelVerify', params: { dataset: scope.row.id, label: '', offset: 0 } })">巡检</el-button>
+          <el-button type="text" size="small" @click="importCoco(scope.row.id)">导入</el-button>
           <el-button type="text" size="small" @click="exportYolo(scope.row.id)">导出</el-button>
         </template>
       </el-table-column>
     </el-table>
     <div style="padding: 10px;">
-      <el-pagination background layout="prev, pager, next" :total="1000">
+      <el-pagination background layout="prev, pager, next, jumper" :current-page.sync="currentPage" :total="total"
+        :page-size="pageSize" @current-change="handlePageChange">
       </el-pagination>
     </div>
 
@@ -80,18 +81,18 @@ export default {
     },
     loadData() {
       getDatasets({
-        offset: 0,
-        pageSize: 10,
+        pageSize: this.pageSize,
+        offset: this.offset,
       }).then((res) => {
-        console.log(res)
         this.tableData = res.data.rows
+        this.total = res.data.total
       }).catch(err => {
         this.$message.error(err.response.data.error)
       })
     },
     importCoco(ds) {
       var path = prompt("输入要导入 Coco 数据集的路径")
-      if (path != "") {
+      if (path) {
         importDataset({ path: path, ds: ds }).then((res) => {
           this.$message.success("成功导入" + res.data.count + "个图片")
           this.handleOk()
@@ -102,7 +103,7 @@ export default {
     },
     exportYolo(ds) {
       var path = prompt("输入要保存 Yolo 数据集的路径")
-      if (path != "") {
+      if (path) {
         exportDataset({ path: path, ds: ds }).then((res) => {
           this.$message.success("成功导出" + res.data.count + "个图片")
           this.handleOk()
@@ -110,7 +111,12 @@ export default {
           this.$message.error(err.response.data.error)
         })
       }
-    }
+    },
+    handlePageChange(val) {
+      this.offset = (val - 1) * this.pageSize
+      this.currentPage = val
+      this.getDatasets()
+    },
   },
   mounted() {
     this.loadData()
@@ -118,7 +124,11 @@ export default {
   data() {
     return {
       loading: false,
-      tableData: []
+      tableData: [],
+      offset: 0,
+      currentPage: 1,
+      pageSize: 8,
+      total: 0,
     }
   }
 }
