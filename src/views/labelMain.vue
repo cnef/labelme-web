@@ -17,13 +17,13 @@
                 <el-button type="danger" @click="resetImages">清空</el-button>
             </div>
             <div class="help">
-                <p>鼠标中间缩放，按住 Alt 可移动图片</p>
+                <p>鼠标中键缩放，按住 Alt 可移动图片</p>
             </div>
         </div>
         <br>
-        <el-row :gutter="20" style="height: calc(100vh - 120px);">
+        <el-row :gutter="20">
             <el-col :span='3'>
-                <div style="overflow: auto;">
+                <div style="height: calc(-130px + 100vh); overflow: auto;">
                     <div @click="switchImage(img.id)" v-for="img in images"
                         :class="['img-box', { 'img-box-active': img.id == activeImgId }]">
                         <div class="img-label">
@@ -525,6 +525,7 @@ export default {
     margin-bottom: 10px;
     cursor: pointer;
     text-align: center;
+    position: relative;
 }
 
 .img-box:hover {
