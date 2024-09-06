@@ -3,9 +3,9 @@
     <el-button type="primary" @click="$refs.datasetEditor.show()">添加</el-button>
 
     <el-table :data="tableData" style="width: 100%" :row-class-name="tableRowClassName">
-      <el-table-column prop="id" label="编号" width="180">
+      <el-table-column prop="id" label="编号" width="100">
       </el-table-column>
-      <el-table-column prop="name" label="说明" width="180">
+      <el-table-column prop="name" label="说明">
       </el-table-column>
       <el-table-column prop="model_path" label="模型文件">
       </el-table-column>
