@@ -115,7 +115,7 @@ export default {
     handlePageChange(val) {
       this.offset = (val - 1) * this.pageSize
       this.currentPage = val
-      this.getDatasets()
+      this.loadData()
     },
   },
   mounted() {

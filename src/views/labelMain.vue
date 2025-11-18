@@ -5,8 +5,8 @@
                 <strong style="padding: 0 10px;">数据集：{{ dataset.name }} (图片数：{{ dataset.count }})</strong>
             </div>
             <div class="pages">
-                <el-pagination background layout="prev, pager, next, jumper" :current-page.sync="currentPage" :total="total"
-                    :page-size="pageSize" @current-change="handlePageChange">
+                <el-pagination background layout="prev, pager, next, jumper" :current-page.sync="currentPage"
+                    :total="total" :page-size="pageSize" @current-change="handlePageChange">
                 </el-pagination>
             </div>
             <div class="btn">
@@ -17,7 +17,7 @@
                 <el-button type="danger" @click="resetImages">清空</el-button>
             </div>
             <div class="help">
-                <p>鼠标中键缩放，按住 Alt 可移动图片</p>
+                <p>鼠标中键缩放，右键置底，按住 Alt 可移动图片</p>
             </div>
         </div>
         <br>
@@ -442,7 +442,7 @@ export default {
                 if (event.button === 1) {
                     // console.log("left click");
                     var ps = this.getObjPosition(event)
-                    console.log(ps)
+                    // console.log(ps)
                     this.selectValue = fabricNew.get("label")
                     // this.$refs.toolTip.style.visibility = 'visible'
                     this.$refs.toolTip.style.display = 'block'
@@ -452,9 +452,10 @@ export default {
                 // if (event.button === 2) {
                 //     console.log("middle click");
                 // }
-                // if (event.button === 3) {
-                //     console.log("right click");
-                // }
+                if (event.button === 3) {
+                    console.log("right click");
+                    fabricNew.moveTo(1)
+                }
                 // console.log("draw click");
             })
 

@@ -15,6 +15,9 @@
                     </el-option>
                 </el-select>
             </div>
+            <div class="btn">
+                <el-button type="primary" @click="getLabels">刷新</el-button>
+            </div>
         </div>
         <br>
         <div style="overflow: auto; height: calc(100vh - 120px);">

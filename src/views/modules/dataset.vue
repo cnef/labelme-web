@@ -10,8 +10,8 @@
                 </el-form-item>
                 <el-form-item label="模型文件" :label-width="formLabelWidth">
                     <el-input v-model="form.model_path" autocomplete="off"></el-input>
-                    <el-upload ref="up" class="upload-demo" action="/api/file/upload" :limit="1" :on-success="handleSuccess"
-                        :data="{ dir: 'models' }">
+                    <el-upload ref="up" class="upload-demo" action="/api/file/upload" :limit="1"
+                        :on-success="handleSuccess" :data="{ dir: 'models' }">
                         <el-button size="small" type="primary">点击上传</el-button>
                         <div slot="tip" class="el-upload__tip">只能上传 onnx 文件</div>
                     </el-upload>
@@ -28,6 +28,15 @@
                     <el-input placeholder="0.1" v-model="form.probability">
                     </el-input>
                 </el-form-item>
+                <el-form-item label="IoU阈值" :label-width="formLabelWidth">
+                    <el-input placeholder="0.2" v-model="form.iou">
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="去重算法" :label-width="formLabelWidth">
+                    <el-select v-model="form.dedup_mode" placeholder="请选择">
+                        <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
+                    </el-select>
+                </el-form-item>
                 <el-form-item label="标签定义" :label-width="formLabelWidth">
                     <el-input type="textarea" :rows="10" placeholder="一行一个" v-model="form.labels">
                     </el-input>
@@ -36,8 +45,8 @@
             <div class="demo-drawer__footer">
                 <el-button @click="closeForm">取消</el-button>
                 <el-button @click="handleOk" type="primary" :loading="loading">{{ loading ? '提交中 ...' :
-                    '确定'
-                }}</el-button>
+        '确定'
+                    }}</el-button>
             </div>
         </div>
     </el-drawer>
@@ -72,6 +81,7 @@ export default {
             var d = Object.assign({}, this.form)
             d.labels = (d.labels || "").split("\n")
             d.probability = parseFloat(d.probability)
+            d.iou = parseFloat(d.iou)
 
             fn(d).then(res => {
                 console.log(res)
@@ -105,6 +115,28 @@ export default {
                 type: [],
             },
             formLabelWidth: '80px',
+            options: [
+                {
+                    label: 'Solf-NMS',
+                    value: 'soft-nms',
+                },
+                {
+                    label: 'NMS',
+                    value: 'nms',
+                },
+                {
+                    label: 'Weighted-NMS',
+                    value: 'weighted-nms',
+                },
+                {
+                    label: 'DIOU-NMS',
+                    value: 'diou-nms',
+                },
+                {
+                    label: '不去重',
+                    value: 'none',
+                }
+            ]
         }
     }
 }

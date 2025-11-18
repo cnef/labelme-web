@@ -13,7 +13,7 @@ module.exports = {
         inline:true,
         proxy:{
             '/api':{
-                target:'http://localhost:8089/api/',
+                target:'http://192.168.1.12:8099/api/',
                 ws:true,
                 changOrigin:true,
                 pathRewrite:{
