@@ -1,4 +1,4 @@
-FROM nginx:1.16.1-alpine
+FROM m.daocloud.io/docker.io/library/nginx:1.16.1-alpine
 
 RUN rm /etc/nginx/conf.d/default.conf
 
