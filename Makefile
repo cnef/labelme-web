@@ -7,3 +7,6 @@ test:
 
 push: image
 	docker save labelme-web:v1.1 | gzip > labelme-web.tgz
+
+dev:
+	yarn run serve

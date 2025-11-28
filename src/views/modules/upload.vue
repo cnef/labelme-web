@@ -9,8 +9,8 @@
             <div class="demo-drawer__footer">
                 <el-button @click="cancelForm">取消</el-button>
                 <el-button type="primary" @click="cancelForm" :loading="loading">{{ loading ? '提交中 ...' :
-                    '确定'
-                }}</el-button>
+        '确定'
+                    }}</el-button>
             </div>
         </div>
     </el-drawer>
@@ -35,6 +35,8 @@ export default {
         cancelForm() {
             this.loading = false;
             this.dialog = false;
+            this.fileList = [];
+            this.ds = [];
             this.$emit("ok")
         }
     },

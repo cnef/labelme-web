@@ -13,7 +13,7 @@ const routes = [
     component: home
   },
   {
-    path: '/label/:dataset/:offset/:id/:only',
+    path: '/label/:dataset/:offset/:id/:only/:label/:left',
     name: 'labelMain',
     component: labelMain
   },

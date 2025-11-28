@@ -1,32 +1,33 @@
 module.exports = {
-// baseUrl:’/’,//根目录
-    outputDir:'dist',//构建输出目录
-    assetsDir:'assets',//静态资源目录
-    lintOnSave:false,//是否开启静态 检测
-    devServer:{
-        open:true,
-        host:'0.0.0.0',
-        port:8080,
-        https:false,
-        hotOnly:false,
-        hot:true,
-        inline:true,
-        proxy:{
-            '/api':{
-                target:'http://192.168.1.12:8099/api/',
-                ws:true,
-                changOrigin:true,
-                pathRewrite:{
-                    '^/api':'',
+    // baseUrl:’/’,//根目录
+    outputDir: 'dist',//构建输出目录
+    assetsDir: 'assets',//静态资源目录
+    lintOnSave: false,//是否开启静态 检测
+    devServer: {
+        open: true,
+        host: '0.0.0.0',
+        port: 8080,
+        https: false,
+        hotOnly: false,
+        hot: true,
+        inline: true,
+        proxy: {
+            '/api': {
+                // target:'http://192.168.1.12:8099/api/',
+                target: 'http://127.0.0.1:8089/api/',
+                ws: true,
+                changOrigin: true,
+                pathRewrite: {
+                    '^/api': '',
                 },
             }
         },
     },
-    chainWebpack:config=>{
+    chainWebpack: config => {
         // 修复HMR
         config.resolve.symlinks(true);
     },
-    css:{
+    css: {
         // extract:true
     },
 

@@ -112,6 +112,7 @@ export default {
             form: {
                 id: '',
                 name: '',
+                model_path: '',
                 type: [],
             },
             formLabelWidth: '80px',

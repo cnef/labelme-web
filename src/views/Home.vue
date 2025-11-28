@@ -27,7 +27,7 @@
           <el-button @click="$refs.datasetEditor.show(scope.row)" type="text" size="small">编辑</el-button>
           <el-button type="text" size="small" @click="$refs.uploader.show(scope.row.id)">上传</el-button>
           <el-button type="text" size="small"
-            @click="$router.push({ name: 'labelMain', params: { dataset: scope.row.id, offset: 0, id: 0, only: '0' } })">标注</el-button>
+            @click="$router.push({ name: 'labelMain', params: { dataset: scope.row.id, offset: 0, id: 0, only: '0', label: 'none', left: 0} })">标注</el-button>
           <el-button type="text" size="small"
             @click="$router.push({ name: 'labelVerify', params: { dataset: scope.row.id, label: '', offset: 0 } })">巡检</el-button>
           <el-button type="text" size="small" @click="importCoco(scope.row.id)">导入</el-button>

@@ -26,7 +26,9 @@
                     dataset: label.dataset_id,
                     offset: 0,
                     id: label.image_id,
-                    only: '1'
+                    only: '1',
+                    label: label.label,
+                    left: label.left,
                 }
             })" v-for="label in labels" :class="['img-box']">
                 <img :src="`/api/file/get/label?id=${label.image_id}&left=${label.left}&top=${label.top}&width=${label.width}&height=${label.height}&`"

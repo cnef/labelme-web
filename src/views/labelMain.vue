@@ -10,6 +10,7 @@
                 </el-pagination>
             </div>
             <div class="btn">
+                <el-checkbox v-model="sample" style="padding-right: 5px;">负样本</el-checkbox>
                 <el-button type="primary" @click="detectImage">自动识别</el-button>
                 <el-button type="primary" @click="copyLabels">复制</el-button>
                 <el-button type="primary" @click="saveImg">保存</el-button>
@@ -81,7 +82,8 @@ export default {
             dataset: {},
             images: [],
             activeImgId: "",
-            preImgId: ""
+            preImgId: "",
+            sample: false
         }
     },
     watch: {
@@ -266,13 +268,16 @@ export default {
 
             if (!disableLabels) {
                 getImage({ id: this.activeImgId }).then(res => {
+                    this.sample = res.data.sample
                     if (res.data.labels == "")
                         return
                     var labels = JSON.parse(res.data.labels)
                     labels.forEach(v => {
-                        this.createRect(v.left, v.top, v.width, v.height, v.label)
+                        let is_active = this.$route.params.label == v.label && parseInt(this.$route.params.left) == parseInt(v.left)
+                        this.createRect(v.left, v.top, v.width, v.height, v.label, is_active)
                     })
                 }).catch(err => {
+                    console.log("xxx",err)
                     this.$message.error(err.response.data.error)
                 })
             }
@@ -421,7 +426,11 @@ export default {
             }
             this.createRect(x, y, width, height, "")
         },
-        createRect(left, top, width, height, label) {
+        createRect(left, top, width, height, label, is_active) {
+            let stroke = 'rgb(26, 115, 232)'
+            if (is_active) {
+                stroke = 'rgb(255, 0, 0)'
+            }
             let fabricNew = new fabric.LabeledRect({
                 width: width,
                 height: height,
@@ -429,7 +438,7 @@ export default {
                 top: top,
                 label: label,
                 fill: "rgb(26, 115, 232, 0.5)",
-                stroke: 'rgb(26, 115, 232)',
+                stroke: stroke,
                 strokeWidth: 1,
 
                 hasRotatingPoint: false,
@@ -492,7 +501,8 @@ export default {
                 id: parseInt(this.activeImgId),
                 labels: JSON.stringify(labels),
                 width: obj.objects[0].width,
-                height: obj.objects[0].height
+                height: obj.objects[0].height,
+                sample: this.sample
             }).then(res => {
                 this.$message.success("保存成功")
                 this.saved = true
