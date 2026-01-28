@@ -83,7 +83,8 @@ export default {
             images: [],
             activeImgId: "",
             preImgId: "",
-            sample: false
+            sample: false,
+            copiedObjects: []
         }
     },
     watch: {
@@ -106,6 +107,9 @@ export default {
                 // this.fabricObj.loadFromJSON(this.fabricJson[id + ''])
                 this.currentPage = (this.offset / this.pageSize) + 1
                 this.loading = false
+
+                // 监听键盘事件
+                window.addEventListener('keydown', this.handleKeyDown)
             }, 500)
         });
     },
@@ -274,10 +278,9 @@ export default {
                     var labels = JSON.parse(res.data.labels)
                     labels.forEach(v => {
                         let is_active = this.$route.params.label == v.label && parseInt(this.$route.params.left) == parseInt(v.left)
-                        this.createRect(v.left, v.top, v.width, v.height, v.label, is_active)
+                        this.createRect(v.left, v.top, v.width, v.height, v.label, is_active, false)
                     })
                 }).catch(err => {
-                    console.log("xxx",err)
                     this.$message.error(err.response.data.error)
                 })
             }
@@ -303,7 +306,7 @@ export default {
                     return
                 var labels = JSON.parse(res.data.labels)
                 labels.forEach(v => {
-                    this.createRect(v.left, v.top, v.width, v.height, v.label)
+                    this.createRect(v.left, v.top, v.width, v.height, v.label, false, false)
                 })
             }).catch(err => {
                 this.$message.error(err.response.data.error)
@@ -315,7 +318,7 @@ export default {
                 console.log(res.data)
                 console.log("zoom", this.fabricObj.getZoom())
                 res.data.forEach(([x1, y1, x2, y2, label, rate]) => {
-                    this.createRect(x1, y1, x2 - x1, y2 - y1, label)
+                    this.createRect(x1, y1, x2 - x1, y2 - y1, label, false, false)
                 });
             }).catch(err => {
                 this.$message.error(err.response.data.error)
@@ -335,6 +338,14 @@ export default {
                         this.fabricObj.selection = false;
                         this.fabricObj.lastPosX = evt.clientX;
                         this.fabricObj.lastPosY = evt.clientY;
+                        return
+                    }
+                    // Ctrl 键按住时不绘制矩形
+                    if (evt.ctrlKey === true || evt.metaKey === true) {
+                        var pointer = this.fabricObj.getPointer(e.e);
+                        this.mouseFrom.x = pointer.x;
+                        this.mouseFrom.y = pointer.y;
+                        this.doDrawing = false;
                         return
                     }
                     var pointer = this.fabricObj.getPointer(e.e);
@@ -426,7 +437,56 @@ export default {
             }
             this.createRect(x, y, width, height, "")
         },
-        createRect(left, top, width, height, label, is_active) {
+        copySelectedObjects() {
+            var activeObjects = this.fabricObj.getActiveObjects()
+            if (activeObjects.length === 0) {
+                return
+            }
+            console.log(activeObjects)
+            this.copiedObjects = []
+
+            // 临时取消选择，以便获取正确的坐标
+            this.fabricObj.discardActiveObject()
+            this.fabricObj.requestRenderAll()
+
+            activeObjects.forEach(obj => {
+                if (obj.type === 'labeledRect') {
+                    // 取消选择后，obj.left 和 obj.top 就是相对于画布的绝对坐标
+                    this.copiedObjects.push({
+                        left: obj.left,
+                        top: obj.top,
+                        width: obj.width,
+                        height: obj.height,
+                        label: obj.label
+                    })
+                }
+            })
+            this.$message.success('已复制 ' + this.copiedObjects.length + ' 个标签')
+        },
+        pasteObjects() {
+            if (!this.copiedObjects || this.copiedObjects.length === 0) {
+                this.$message.warning('没有可粘贴的内容')
+                return
+            }
+            var newObjects = []
+            this.copiedObjects.forEach(v => {
+                var rect = this.createRect(v.left, v.top, v.width, v.height, v.label, false, false)
+                newObjects.push(rect)
+            })
+            this.fabricObj.requestRenderAll()
+            this.saved = false
+
+            // 选中所有粘贴的 rect
+            if (newObjects.length > 0) {
+                var selection = new fabric.ActiveSelection(newObjects, {
+                    canvas: this.fabricObj
+                })
+                this.fabricObj.setActiveObject(selection)
+            }
+
+            this.$message.success('已粘贴 ' + this.copiedObjects.length + ' 个标签')
+        },
+        createRect(left, top, width, height, label, is_active, selectAfterCreate = true) {
             let stroke = 'rgb(26, 115, 232)'
             if (is_active) {
                 stroke = 'rgb(255, 0, 0)'
@@ -437,7 +497,7 @@ export default {
                 left: left,
                 top: top,
                 label: label,
-                fill: "rgb(26, 115, 232, 0.5)",
+                fill: "rgb(26, 115, 232, 0.3)",
                 stroke: stroke,
                 strokeWidth: 1,
 
@@ -470,9 +530,31 @@ export default {
 
             if (fabricNew) {
                 this.fabricObj.add(fabricNew);
+                if (selectAfterCreate) {
+                    this.fabricObj.setActiveObject(fabricNew);
+                }
             }
+
+            return fabricNew
         },
         saveImg() {
+            // 保存时提示未标注的边框
+            var objects = this.fabricObj.getObjects()
+            objects.forEach(function (o) {
+                if (o.type == "labeledRect" && o.label == "") {
+                    o.set({
+                        'stroke': 'rgb(255, 0, 0)',
+                        'strokeWidth': 3
+                    })
+                } else if (o.type == "labeledRect" && o.label != "") {
+                    o.set({
+                        'stroke': 'rgb(26, 115, 232)',
+                        'strokeWidth': 1
+                    })
+                }
+            })
+            this.fabricObj.requestRenderAll()
+            // 
             var obj = this.fabricObj.toJSON()
             var labels = []
             console.log(obj)
@@ -521,8 +603,22 @@ export default {
             if (confirm("确定清空当前标记?")) {
                 this.addImageToCanvas(true)
             }
+        },
+        handleKeyDown(e) {
+            // Ctrl+C 或 Command+C 复制
+            if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+                this.copySelectedObjects()
+            }
+            // Ctrl+V 或 Command+V 粘贴
+            if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+                this.pasteObjects()
+            }
         }
     },
+    beforeDestroy() {
+        // 移除键盘事件监听
+        window.removeEventListener('keydown', this.handleKeyDown)
+    }
 }
 </script>
 

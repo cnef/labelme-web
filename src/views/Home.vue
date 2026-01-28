@@ -127,7 +127,7 @@ export default {
       tableData: [],
       offset: 0,
       currentPage: 1,
-      pageSize: 8,
+      pageSize: 10,
       total: 0,
     }
   }

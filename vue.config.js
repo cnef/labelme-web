@@ -13,8 +13,8 @@ module.exports = {
         inline: true,
         proxy: {
             '/api': {
-                // target:'http://192.168.1.12:8099/api/',
-                target: 'http://127.0.0.1:8089/api/',
+                target:'http://192.168.1.12:8099/api/',
+                // target: 'http://127.0.0.1:8089/api/',
                 ws: true,
                 changOrigin: true,
                 pathRewrite: {
