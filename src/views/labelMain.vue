@@ -36,7 +36,8 @@
             </el-col>
             <el-col :span='21'>
                 <div v-loading="loading" id="canvas-box" style="">
-                    <canvas id="label-canvas" style="display: block;width: 100%;height:100%"></canvas>
+                    <canvas id="label-canvas" tabindex="0"
+                        style="display: block;width: 100%;height:100%;outline: none;"></canvas>
                     <img id="labelImg" @load="imageLoaded" :src="'/api/file/get?id=' + activeImgId"
                         style="max-width: 100%;display: none">
                 </div>
@@ -236,7 +237,11 @@ export default {
                 fireMiddleClick: true, // <-- enable firing of middle click events
                 stopContextMenu: true, // <--  prevent context menu from showing
                 hoverCursor: 'pointer',
+                preserveObjectStacking: true, // 保持对象堆叠顺序
             });
+
+            // 添加 canvas 的键盘事件监听，兼容 Windows
+            this.fabricObj.wrapperEl.addEventListener('keydown', this.handleKeyDown);
         },
         addImageToCanvas(disableLabels) {
             if (!this.fabricObj) {
@@ -605,12 +610,14 @@ export default {
             }
         },
         handleKeyDown(e) {
-            // Ctrl+C 或 Command+C 复制
-            if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+            // 阻止默认行为，确保能够捕获按键事件
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
+                e.preventDefault()
                 this.copySelectedObjects()
             }
             // Ctrl+V 或 Command+V 粘贴
-            if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'v' || e.key === 'V')) {
+                e.preventDefault()
                 this.pasteObjects()
             }
         }
@@ -618,6 +625,9 @@ export default {
     beforeDestroy() {
         // 移除键盘事件监听
         window.removeEventListener('keydown', this.handleKeyDown)
+        if (this.fabricObj && this.fabricObj.wrapperEl) {
+            this.fabricObj.wrapperEl.removeEventListener('keydown', this.handleKeyDown)
+        }
     }
 }
 </script>
