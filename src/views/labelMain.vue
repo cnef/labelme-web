@@ -18,8 +18,22 @@
                 <el-button type="danger" @click="resetImages">清空</el-button>
             </div>
             <div class="help">
-                <p>鼠标中键缩放，右键置底，按住 Alt 可移动图片</p>
+                <el-button type="info" plain @click="showHelpDialog = true">帮助</el-button>
             </div>
+            <el-dialog title="操作说明" :visible.sync="showHelpDialog" width="400px" custom-class="help-dialog" center>
+                <div class="help-content">
+                    <p>点击对象：设置标签类别</p>
+                    <p>鼠标中键：缩放图片</p>
+                    <p>鼠标右键：将选中对象置底</p>
+                    <p>按住 Alt：可移动图片</p>
+                    <p>按住 Ctrl：可多选对象</p>
+                    <p>Ctrl+C / Cmd+C：复制选中的标签</p>
+                    <p>Ctrl+V / Cmd+V：粘贴标签</p>
+                </div>
+                <span slot="footer" class="dialog-footer">
+                    <el-button type="primary" @click="showHelpDialog = false">关闭</el-button>
+                </span>
+            </el-dialog>
         </div>
         <br>
         <el-row :gutter="20">
@@ -85,7 +99,8 @@ export default {
             activeImgId: "",
             preImgId: "",
             sample: false,
-            copiedObjects: []
+            copiedObjects: [],
+            showHelpDialog: false
         }
     },
     watch: {
@@ -696,5 +711,19 @@ export default {
 .header .help {
     display: inline-block;
     margin: 0 10px;
+}
+
+.help-content p {
+    margin: 10px 0;
+    line-height: 1.2;
+    color: #333;
+}
+
+::v-deep .help-dialog {
+    padding-top: 20px;
+}
+
+::v-deep .help-dialog .el-dialog__body {
+    padding: 10px 30px;
 }
 </style>
