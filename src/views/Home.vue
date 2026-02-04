@@ -31,7 +31,7 @@
           <el-button type="text" size="small"
             @click="$router.push({ name: 'labelVerify', params: { dataset: scope.row.id, label: '', offset: 0 } })">巡检</el-button>
           <el-button type="text" size="small" @click="importCoco(scope.row.id)">导入</el-button>
-          <el-button type="text" size="small" @click="exportYolo(scope.row.id)">导出</el-button>
+          <el-button type="text" size="small" @click="exportYolo(scope.row)">导出</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -43,6 +43,7 @@
 
     <Upload ref="uploader" @ok="handleOk"></Upload>
     <Dataset ref="datasetEditor" @ok="handleOk"></Dataset>
+    <ExportDialog ref="exportDialog" @ok="handleOk"></ExportDialog>
 
   </div>
 </template>
@@ -60,12 +61,14 @@
 <script>
 import Upload from '@/views/modules/upload.vue'
 import Dataset from '@/views/modules/dataset.vue'
+import ExportDialog from '@/views/modules/export.vue'
 import { getDatasets, importDataset, exportDataset } from '@/api/api'
 
 export default {
   components: {
     Upload,
-    Dataset
+    Dataset,
+    ExportDialog
   },
   methods: {
     tableRowClassName({ row, rowIndex }) {
@@ -101,16 +104,8 @@ export default {
         })
       }
     },
-    exportYolo(ds) {
-      var path = prompt("输入要保存 Yolo 数据集的路径")
-      if (path) {
-        exportDataset({ path: path, ds: ds }).then((res) => {
-          this.$message.success("成功导出" + res.data.count + "个图片")
-          this.handleOk()
-        }).catch(err => {
-          this.$message.error(err.response.data.error)
-        })
-      }
+    exportYolo(dataset) {
+      this.$refs.exportDialog.show(dataset)
     },
     handlePageChange(val) {
       this.offset = (val - 1) * this.pageSize
