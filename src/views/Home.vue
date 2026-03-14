@@ -2,7 +2,12 @@
   <div class="home">
     <el-button type="primary" @click="$refs.datasetEditor.show()">添加</el-button>
 
-    <el-table :data="tableData" style="width: 100%" :row-class-name="tableRowClassName">
+    <el-table :data="tableData" style="width: 100%" :row-class-name="tableRowClassName" highlight-current-row @row-click="handleRowClick">
+      <el-table-column label="序号" width="50">
+        <template slot-scope="scope">
+          {{ (currentPage - 1) * pageSize + scope.$index + 1 }}
+        </template>
+      </el-table-column>
       <el-table-column prop="id" label="编号" width="100">
       </el-table-column>
       <el-table-column prop="name" label="说明">
@@ -56,6 +61,11 @@
 .el-table .success-row {
   background: #f0f9eb;
 }
+
+.el-table__body tr.current-row>td {
+  background-color: #f0f9eb !important;
+  color: #333;
+}
 </style>
 
 <script>
@@ -72,12 +82,10 @@ export default {
   },
   methods: {
     tableRowClassName({ row, rowIndex }) {
-      if (rowIndex === 1) {
-        return 'warning-row';
-      } else if (rowIndex === 3) {
-        return 'success-row';
-      }
       return '';
+    },
+    handleRowClick(row) {
+      this.currentRow = row;
     },
     handleOk() {
       this.loadData()
@@ -124,6 +132,7 @@ export default {
       currentPage: 1,
       pageSize: 10,
       total: 0,
+      currentRow: null,
     }
   }
 }

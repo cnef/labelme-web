@@ -36,8 +36,13 @@ export default {
   methods: {
     show(dataset) {
       this.currentDataset = dataset
-      this.form.path = ''
-      this.form.labels = [...dataset.labels]
+      this.form.path = this.getStoredPath() || ''
+      const storedLabels = this.getStoredLabels()
+      if (storedLabels && storedLabels.length > 0) {
+        this.form.labels = storedLabels.filter(label => dataset.labels.includes(label))
+      } else {
+        this.form.labels = []
+      }
       console.log(dataset)
       this.$nextTick(() => {
         this.dialog = true
@@ -45,6 +50,32 @@ export default {
           this.$refs.form.clearValidate()
         }
       })
+    },
+    getStoredPath() {
+      try {
+        const stored = localStorage.getItem('export_path')
+        return stored || ''
+      } catch (e) {
+        console.error('读取存储路径失败:', e)
+        return ''
+      }
+    },
+    getStoredLabels() {
+      try {
+        const stored = localStorage.getItem('export_labels')
+        return stored ? JSON.parse(stored) : null
+      } catch (e) {
+        console.error('读取存储标签失败:', e)
+        return null
+      }
+    },
+    saveToStorage() {
+      try {
+        localStorage.setItem('export_path', this.form.path)
+        localStorage.setItem('export_labels', JSON.stringify(this.form.labels))
+      } catch (e) {
+        console.error('保存存储失败:', e)
+      }
     },
     selectAll() {
       this.form.labels = [...this.datasetLabels]
@@ -60,6 +91,7 @@ export default {
             return
           }
           this.loading = true
+          this.saveToStorage()
           const params = {
             path: this.form.path,
             ds: this.currentDataset.id

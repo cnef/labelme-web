@@ -338,7 +338,7 @@ export default {
                 console.log(res.data)
                 console.log("zoom", this.fabricObj.getZoom())
                 res.data.forEach(([x1, y1, x2, y2, label, rate]) => {
-                    this.createRect(x1, y1, x2 - x1, y2 - y1, label, false, false)
+                    this.createRect(x1, y1, x2 - x1, y2 - y1, label, false, false, true)
                 });
             }).catch(err => {
                 this.$message.error(err.response.data.error)
@@ -506,10 +506,15 @@ export default {
 
             this.$message.success('已粘贴 ' + this.copiedObjects.length + ' 个标签')
         },
-        createRect(left, top, width, height, label, is_active, selectAfterCreate = true) {
+        createRect(left, top, width, height, label, is_active, selectAfterCreate = true, isAutoDetected = false) {
             let stroke = 'rgb(26, 115, 232)'
+            let fill = "rgb(26, 115, 232, 0.3)"
             if (is_active) {
                 stroke = 'rgb(255, 0, 0)'
+            }
+            if (isAutoDetected) {
+                stroke = 'rgb(34, 197, 94)'
+                fill = "rgb(34, 197, 94, 0.2)"
             }
             let fabricNew = new fabric.LabeledRect({
                 width: width,
@@ -517,9 +522,9 @@ export default {
                 left: left,
                 top: top,
                 label: label,
-                fill: "rgb(26, 115, 232, 0.3)",
+                fill: fill,
                 stroke: stroke,
-                strokeWidth: 1,
+                strokeWidth: is_active ? 3 : 1,
 
                 hasRotatingPoint: false,
                 centeredRotation: false,
